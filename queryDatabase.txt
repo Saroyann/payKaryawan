@@ -1,0 +1,89 @@
+//buat database
+CREATE DATABASE dataKaryawan;
+
+//table Karyawan
+CREATE TABLE `karyawan` (
+  `id_karyawan` varchar(20) NOT NULL,
+  `nama` varchar(100) DEFAULT NULL,
+  `jabatan` varchar(50) DEFAULT NULL,
+  `username` varchar(50) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `id_jabatan` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id_karyawan`),
+  KEY `fk_karyawan_jabatan` (`id_jabatan`),
+  CONSTRAINT `fk_karyawan_jabatan` FOREIGN KEY (`id_jabatan`) REFERENCES `master_jabatan` (`id_jabatan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+//table absensi
+CREATE TABLE `absensi` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_karyawan` varchar(20) DEFAULT NULL,
+  `nama` varchar(100) DEFAULT NULL,
+  `jabatan` varchar(50) DEFAULT NULL,
+  `foto` varchar(255) DEFAULT NULL,
+  `lokasi` varchar(255) DEFAULT NULL,
+  `jam_datang` time DEFAULT NULL,
+  `jam_pulang` time DEFAULT NULL,
+  `tanggal` date DEFAULT NULL,
+  `status_verifikasi` enum('diterima','ditolak','menunggu') DEFAULT 'menunggu',
+  `status` varchar(20) DEFAULT 'hadir',
+  PRIMARY KEY (`id`),
+  KEY `id_karyawan` (`id_karyawan`),
+  CONSTRAINT `absensi_ibfk_1` FOREIGN KEY (`id_karyawan`) REFERENCES `karyawan` (`id_karyawan`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+//table rekap_gaji
+CREATE TABLE `rekap_gaji` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_karyawan` varchar(20) NOT NULL,
+  `gaji` int(11) DEFAULT 0,
+  `nama` varchar(100) DEFAULT NULL,
+  `jabatan` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `rekap_gaji_ibfk_1` (`id_karyawan`),
+  CONSTRAINT `rekap_gaji_ibfk_1` FOREIGN KEY (`id_karyawan`) REFERENCES `karyawan` (`id_karyawan`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+
+// table cuti
+CREATE TABLE `cuti` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_karyawan` varchar(20) DEFAULT NULL,
+  `nama` varchar(100) DEFAULT NULL,
+  `jabatan` varchar(50) DEFAULT NULL,
+  `jenis` enum('Ijin','Cuti') NOT NULL,
+  `tanggal_mulai` date DEFAULT NULL,
+  `tanggal_selesai` date DEFAULT NULL,
+  `lampiran` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_karyawan` (`id_karyawan`),
+  CONSTRAINT `cuti_ibfk_1` FOREIGN KEY (`id_karyawan`) REFERENCES `karyawan` (`id_karyawan`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+// table admin
+CCREATE TABLE `admin` (
+  `username` varchar(220) NOT NULL,
+  `password` varchar(220) NOT NULL,
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+// table laporan laporan_pekerjaanCREATE TABLE `laporan_pekerjaan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_karyawan` varchar(20) NOT NULL,
+  `tanggal` date NOT NULL,
+  `isi_laporan` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+// table master_jabatan
+CREATE TABLE `master_jabatan` (
+  `id_jabatan` int(11) NOT NULL AUTO_INCREMENT,
+  `nama_jabatan` varchar(50) NOT NULL,
+  `gaji_pokok` int(11) DEFAULT 0,
+  PRIMARY KEY (`id_jabatan`),
+  UNIQUE KEY `nama_jabatan` (`nama_jabatan`),
+  UNIQUE KEY `unique_jabatan` (`nama_jabatan`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+

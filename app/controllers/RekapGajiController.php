@@ -1,0 +1,84 @@
+<?php
+require_once __DIR__ . '/../config/Config.php';
+require_once __DIR__ . '/../models/RekapGajiModel.php';
+
+class RekapGajiController {
+    private $conn;
+
+    public function __construct() {
+        $this->conn = Config::connect();
+    }
+
+    private function getGajiPokok($jabatan) {
+        $gaji = [
+            'Manajer' => 8000000,
+            'Asisten Manajer' => 6500000,
+            'Supervisor' => 5000000,
+            'Staff' => 3500000,
+            'Office Boy/Girl' => 2500000,
+        ];
+        return $gaji[$jabatan] ?? 0;
+    }
+
+    public function getRekapGaji($limit, $offset) {
+        // Ambil semua karyawan
+        $sqlKaryawan = "SELECT id_karyawan, nama, jabatan FROM karyawan";
+        $resultKaryawan = $this->conn->query($sqlKaryawan);
+        $karyawanList = [];
+        while ($row = $resultKaryawan->fetch_assoc()) {
+            $karyawanList[$row['id_karyawan']] = [
+                'id_karyawan' => $row['id_karyawan'], // <-- tambahkan baris ini!
+                'nama' => $row['nama'],
+                'jabatan' => $row['jabatan'],
+                'gaji_pokok' => $this->getGajiPokok($row['jabatan']),
+                'hadir' => 0,
+                'gaji' => 0
+            ];
+        }
+
+        $sqlAbsensi = "SELECT id_karyawan, COUNT(*) as total_hadir 
+                       FROM absensi 
+                       WHERE status_verifikasi = 'diterima'
+                       GROUP BY id_karyawan";
+        $resultAbsensi = $this->conn->query($sqlAbsensi);
+        while ($row = $resultAbsensi->fetch_assoc()) {
+            if (isset($karyawanList[$row['id_karyawan']])) {
+                $karyawanList[$row['id_karyawan']]['hadir'] = $row['total_hadir'];
+            }
+        }
+
+        foreach ($karyawanList as $id => &$data) {
+            $data['gaji'] = $data['hadir'] * $data['gaji_pokok'];
+        }
+
+        $rekapModel = new RekapGajiModel();
+        foreach ($karyawanList as $karyawan) {
+            $rekapModel->saveOrUpdateGaji(
+                $karyawan['id_karyawan'],
+                $karyawan['gaji'],
+                $karyawan['nama'],
+                $karyawan['jabatan'],
+                $karyawan['id_jabatan'] ?? null // jika ada
+            );
+        }
+
+        //pagination
+        $allData = array_values($karyawanList);
+        $pagedData = array_slice($allData, $offset, $limit);
+
+        return $pagedData;
+    }
+
+    public function countAll() {
+        $result = $this->conn->query("SELECT COUNT(*) as total FROM karyawan");
+        $row = $result->fetch_assoc();
+        return $row ? (int)$row['total'] : 0;
+    }
+}
+
+function render($contentFile) {
+    $content = $contentFile;
+    include __DIR__ . '/../views/MainPages.php';
+}
+
+render(__DIR__ . '/../views/pages/RekapGaji.php');
