@@ -12,15 +12,16 @@
                         <th>Foto</th>
                         <th>Lokasi</th>
                         <th>Jam Datang</th>
+                        <th>Jam Pulang</th> <!-- Tambahkan kolom ini -->
                         <th>Tanggal</th>
-                        <th>Status Kehadiran</th> 
+                        <th>Status Kehadiran</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($dataAbsensi)): ?>
                         <tr>
-                            <td colspan="10" class="text-center bg-white">Tidak ada kegiatan absensi.</td>
+                            <td colspan="11" class="text-center bg-white">Tidak ada kegiatan absensi.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($dataAbsensi as $i => $absen): ?>
@@ -67,13 +68,15 @@
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($absen['jam_datang']) ?></td>
+                                <td><?= htmlspecialchars($absen['jam_pulang'] ?? '-') ?></td> <!-- Kolom jam pulang -->
                                 <td><?= htmlspecialchars($absen['tanggal']) ?></td>
-                                <td> <?php if (!empty($absen['status_verifikasi'])): ?>
+                                <td>
+                                    <?php if (!empty($absen['status_verifikasi'])): ?>
                                         <span class="badge bg-<?= $absen['status_verifikasi'] === 'diterima' ? 'success' : ($absen['status_verifikasi'] === 'ditolak' ? 'danger' : 'secondary') ?>">
                                             <?= ucfirst($absen['status_verifikasi']) ?>
                                         </span>
                                     <?php endif; ?>
-                                </td> <!-- Kolom status kehadiran -->
+                                </td>
                                 <td>
                                     <?php if ($absen['status_verifikasi'] === 'menunggu' || empty($absen['status_verifikasi'])): ?>
                                         <form method="POST" action="/payKaryawan/app/controllers/VerifikasiController.php" style="display:inline;">

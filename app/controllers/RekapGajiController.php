@@ -31,28 +31,18 @@ class RekapGajiController {
                 'nama' => $row['nama'],
                 'jabatan' => $row['jabatan'],
                 'gaji_pokok' => $this->getGajiPokok($row['jabatan']),
-                'hadir' => 0,
+                'total_detik' => 0,
                 'gaji' => 0
             ];
         }
 
-        $sqlAbsensi = "SELECT id_karyawan, COUNT(*) as total_hadir 
-                       FROM absensi 
-                       WHERE status_verifikasi = 'diterima'
-                       GROUP BY id_karyawan";
-        $resultAbsensi = $this->conn->query($sqlAbsensi);
-        while ($row = $resultAbsensi->fetch_assoc()) {
-            if (isset($karyawanList[$row['id_karyawan']])) {
-                $karyawanList[$row['id_karyawan']]['hadir'] = $row['total_hadir'];
-            }
-        }
-
+        // Ambil total detik kerja dari absensi valid
         $sqlDetik = "SELECT id_karyawan, 
             SUM(TIME_TO_SEC(TIMEDIFF(jam_pulang, jam_datang))) AS total_detik 
-            FROM absensi 
-            WHERE status_verifikasi = 'diterima' 
-              AND jam_datang IS NOT NULL 
-              AND jam_pulang IS NOT NULL 
+            FROM absensi
+            WHERE status_verifikasi = 'diterima'
+              AND jam_datang IS NOT NULL
+              AND jam_pulang IS NOT NULL
             GROUP BY id_karyawan";
         $resultDetik = $this->conn->query($sqlDetik);
         $detikMap = [];
@@ -75,7 +65,7 @@ class RekapGajiController {
                 $karyawan['gaji'],
                 $karyawan['nama'],
                 $karyawan['jabatan'],
-                $karyawan['id_jabatan'] ?? null // jika ada
+                $karyawan['id_jabatan'] ?? null 
             );
         }
 

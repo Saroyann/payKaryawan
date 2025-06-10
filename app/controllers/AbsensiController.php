@@ -68,7 +68,29 @@ class AbsensiController {
                 exit;
             }
 
+            // Batasi jam absensi datang
+            $now = new DateTime();
+            $start = new DateTime(date('Y-m-d') . ' 08:00:00');
+            $end = new DateTime(date('Y-m-d') . ' 17:00:00');
+            if ($now < $start || $now > $end) {
+                $_SESSION['error_foto'] = "Absen datang hanya bisa dilakukan antara jam 08.00 sampai 17.00.";
+                header('Location: /payKaryawan/public/absensi');
+                exit;
+            }
+
             $jam_datang = date('Y-m-d H:i:s');
+
+            // Hitung denda jika telat lebih dari 15 menit dari jam 08:00
+            $denda = 0;
+            $jam_masuk_normal = new DateTime(date('Y-m-d') . ' 08:00:00');
+            $jam_datang_obj = new DateTime($jam_datang);
+            $selisih = $jam_masuk_normal->diff($jam_datang_obj);
+            $menit_telat = ($jam_datang_obj > $jam_masuk_normal) ? ($selisih->h * 60 + $selisih->i) : 0;
+
+            if ($menit_telat > 15) {
+                // Misal denda Rp 10.000 jika telat lebih dari 15 menit
+                $denda = 10000;
+            }
 
             // Debug info
             error_log("DEBUG - Processing absen datang for: " . $id_karyawan);
@@ -129,7 +151,8 @@ class AbsensiController {
                 'lokasi' => $lokasi,
                 'jam_datang' => $jam_datang,
                 'tanggal' => $tanggal,
-                'status' => 'hadir'
+                'status' => 'hadir',
+                'denda' => $denda
             ];
 
             error_log("DEBUG - Data yang akan disimpan: " . print_r($data, true));
@@ -161,6 +184,21 @@ class AbsensiController {
             
             if (!$id_karyawan) {
                 $_SESSION['error_foto'] = "Session tidak valid.";
+                header('Location: /payKaryawan/public/absensi');
+                exit;
+            }
+
+            // Batas waktu absen pulang: 17:00 sampai 17:15
+            $now = new DateTime();
+            $start = new DateTime(date('Y-m-d') . ' 17:00:00');
+            $end = new DateTime(date('Y-m-d') . ' 17:15:00');
+            if ($now < $start) {
+                $_SESSION['error_foto'] = "Absen pulang hanya bisa dilakukan mulai jam 17.00.";
+                header('Location: /payKaryawan/public/absensi');
+                exit;
+            }
+            if ($now > $end) {
+                $_SESSION['error_foto'] = "Absen pulang sudah ditutup (melebihi batas toleransi 15 menit setelah jam 17.00).";
                 header('Location: /payKaryawan/public/absensi');
                 exit;
             }
