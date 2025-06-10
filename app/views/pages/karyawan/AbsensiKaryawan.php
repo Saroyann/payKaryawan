@@ -23,7 +23,10 @@ $isSudahAbsenPulang = $_SESSION['sudah_absen_pulang'] ?? false;
         <form id="absenForm" action="/payKaryawan/app/controllers/AbsensiController.php" method="POST" enctype="multipart/form-data" autocomplete="off">
             <div class="mb-3">
                 <label for="foto" class="form-label">Foto Kehadiran (JPG/JPEG)</label>
-                <input type="file" class="form-control" name="foto" id="foto" accept="image/jpeg" required <?= $isSudahAbsenDatang ? 'disabled' : '' ?>>
+                <input type="file" class="form-control" name="foto" id="foto"
+                    accept="image/jpeg,image/png"
+                    capture="environment"
+                    required <?= $isSudahAbsenDatang ? 'disabled' : '' ?>>
                 <div class="form-text text-danger">
                     Hanya file JPG/JPEG, maksimal 2MB.
                 </div>
