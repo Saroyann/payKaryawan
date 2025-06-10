@@ -23,7 +23,7 @@
                     <?php else: ?>
                         <?php foreach ($dataCuti as $i => $cuti): ?>
                             <tr>
-                                <td><?= $offset + $i + 1 ?></td>
+                                <td><?= $i + 1 ?></td>
                                 <td><?= htmlspecialchars($cuti['nama']) ?></td>
                                 <td><?= htmlspecialchars($cuti['id_karyawan']) ?></td>
                                 <td><?= htmlspecialchars($cuti['jabatan']) ?></td>

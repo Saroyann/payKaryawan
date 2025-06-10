@@ -27,7 +27,7 @@ class RekapGajiController {
         $karyawanList = [];
         while ($row = $resultKaryawan->fetch_assoc()) {
             $karyawanList[$row['id_karyawan']] = [
-                'id_karyawan' => $row['id_karyawan'], // <-- tambahkan baris ini!
+                'id_karyawan' => $row['id_karyawan'],
                 'nama' => $row['nama'],
                 'jabatan' => $row['jabatan'],
                 'gaji_pokok' => $this->getGajiPokok($row['jabatan']),
@@ -60,7 +60,7 @@ class RekapGajiController {
             $detikMap[$row['id_karyawan']] = (int)$row['total_detik'];
         }
 
-        $totalDetikBulan = 22 * 8 * 60 * 60; // 22 hari × 8 jam × 60 menit × 60 detik
+        $totalDetikBulan = 22 * 8 * 60 * 60;
 
         foreach ($karyawanList as $id => &$data) {
             $totalDetik = $detikMap[$id] ?? 0;
