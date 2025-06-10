@@ -47,8 +47,25 @@ class RekapGajiController {
             }
         }
 
+        $sqlDetik = "SELECT id_karyawan, 
+            SUM(TIME_TO_SEC(TIMEDIFF(jam_pulang, jam_datang))) AS total_detik 
+            FROM absensi 
+            WHERE status_verifikasi = 'diterima' 
+              AND jam_datang IS NOT NULL 
+              AND jam_pulang IS NOT NULL 
+            GROUP BY id_karyawan";
+        $resultDetik = $this->conn->query($sqlDetik);
+        $detikMap = [];
+        while ($row = $resultDetik->fetch_assoc()) {
+            $detikMap[$row['id_karyawan']] = (int)$row['total_detik'];
+        }
+
+        $totalDetikBulan = 22 * 8 * 60 * 60; // 22 hari × 8 jam × 60 menit × 60 detik
+
         foreach ($karyawanList as $id => &$data) {
-            $data['gaji'] = $data['hadir'] * $data['gaji_pokok'];
+            $totalDetik = $detikMap[$id] ?? 0;
+            $data['total_detik'] = $totalDetik;
+            $data['gaji'] = round($data['gaji_pokok'] * ($totalDetik / $totalDetikBulan));
         }
 
         $rekapModel = new RekapGajiModel();
