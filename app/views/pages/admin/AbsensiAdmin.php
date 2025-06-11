@@ -12,7 +12,8 @@
                         <th>Foto</th>
                         <th>Lokasi</th>
                         <th>Jam Datang</th>
-                        <th>Jam Pulang</th> <!-- Tambahkan kolom ini -->
+                        <th>Jam Pulang</th>
+                        <th>Total Jam Kerja</th> <!-- Tambahkan ini -->
                         <th>Tanggal</th>
                         <th>Status Kehadiran</th>
                         <th>Aksi</th>
@@ -21,7 +22,7 @@
                 <tbody>
                     <?php if (empty($dataAbsensi)): ?>
                         <tr>
-                            <td colspan="11" class="text-center bg-white">Tidak ada kegiatan absensi.</td>
+                            <td colspan="12" class="text-center bg-white">Tidak ada kegiatan absensi.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($dataAbsensi as $i => $absen): ?>
@@ -69,6 +70,18 @@
                                 </td>
                                 <td><?= htmlspecialchars($absen['jam_datang']) ?></td>
                                 <td><?= htmlspecialchars($absen['jam_pulang'] ?? '-') ?></td> <!-- Kolom jam pulang -->
+                                <td>
+                                    <?php
+                                    if (!empty($absen['jam_datang']) && !empty($absen['jam_pulang'])) {
+                                        $start = new DateTime($absen['jam_datang']);
+                                        $end = new DateTime($absen['jam_pulang']);
+                                        $interval = $start->diff($end);
+                                        echo $interval->format('%h jam %i menit %s detik');
+                                    } else {
+                                        echo '-';
+                                    }
+                                    ?>
+                                </td>
                                 <td><?= htmlspecialchars($absen['tanggal']) ?></td>
                                 <td>
                                     <?php if (!empty($absen['status_verifikasi'])): ?>

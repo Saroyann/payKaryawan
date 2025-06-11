@@ -19,10 +19,20 @@ class AbsensiController {
 
     public function index() {
         $id_karyawan = $_SESSION['id_karyawan'] ?? null;
-    
-        
         $tanggal = date('Y-m-d');
         $absensi = $this->model->getTodayAbsensi($id_karyawan, $tanggal);
+
+        // Auto absen pulang jika sudah absen datang tapi belum absen pulang dan sudah lewat jam 17:15
+        if ($absensi && !empty($absensi['jam_datang']) && empty($absensi['jam_pulang'])) {
+            $now = new DateTime();
+            $autoPulang = new DateTime(date('Y-m-d') . ' 17:15:00');
+            if ($now > $autoPulang) {
+                // Set jam_pulang otomatis ke 17:15:00
+                $this->model->absenPulang($absensi['id'], date('Y-m-d') . ' 17:15:00');
+                $_SESSION['sudah_absen_pulang'] = true;
+                $_SESSION['success_absen'] = "Absen pulang otomatis dicatat pada 17:15:00 karena Anda tidak absen pulang.";
+            }
+        }
 
         // Set status absen datang dan pulang di session
         $_SESSION['sudah_absen_datang'] = $absensi && !empty($absensi['jam_datang']);
@@ -68,29 +78,7 @@ class AbsensiController {
                 exit;
             }
 
-            // Batasi jam absensi datang
-            $now = new DateTime();
-            $start = new DateTime(date('Y-m-d') . ' 08:00:00');
-            $end = new DateTime(date('Y-m-d') . ' 17:00:00');
-            if ($now < $start || $now > $end) {
-                $_SESSION['error_foto'] = "Absen datang hanya bisa dilakukan antara jam 08.00 sampai 17.00.";
-                header('Location: /payKaryawan/public/absensi');
-                exit;
-            }
-
             $jam_datang = date('Y-m-d H:i:s');
-
-            // Hitung denda jika telat lebih dari 15 menit dari jam 08:00
-            $denda = 0;
-            $jam_masuk_normal = new DateTime(date('Y-m-d') . ' 08:00:00');
-            $jam_datang_obj = new DateTime($jam_datang);
-            $selisih = $jam_masuk_normal->diff($jam_datang_obj);
-            $menit_telat = ($jam_datang_obj > $jam_masuk_normal) ? ($selisih->h * 60 + $selisih->i) : 0;
-
-            if ($menit_telat > 15) {
-                // Misal denda Rp 10.000 jika telat lebih dari 15 menit
-                $denda = 10000;
-            }
 
             // Debug info
             error_log("DEBUG - Processing absen datang for: " . $id_karyawan);
@@ -152,7 +140,6 @@ class AbsensiController {
                 'jam_datang' => $jam_datang,
                 'tanggal' => $tanggal,
                 'status' => 'hadir',
-                'denda' => $denda
             ];
 
             error_log("DEBUG - Data yang akan disimpan: " . print_r($data, true));
@@ -188,20 +175,7 @@ class AbsensiController {
                 exit;
             }
 
-            // Batas waktu absen pulang: 17:00 sampai 17:15
-            $now = new DateTime();
-            $start = new DateTime(date('Y-m-d') . ' 17:00:00');
-            $end = new DateTime(date('Y-m-d') . ' 17:15:00');
-            if ($now < $start) {
-                $_SESSION['error_foto'] = "Absen pulang hanya bisa dilakukan mulai jam 17.00.";
-                header('Location: /payKaryawan/public/absensi');
-                exit;
-            }
-            if ($now > $end) {
-                $_SESSION['error_foto'] = "Absen pulang sudah ditutup (melebihi batas toleransi 15 menit setelah jam 17.00).";
-                header('Location: /payKaryawan/public/absensi');
-                exit;
-            }
+
 
             $tanggal = date('Y-m-d');
             $absensi = $this->model->getTodayAbsensi($id_karyawan, $tanggal);

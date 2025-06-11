@@ -55,7 +55,7 @@ class RekapGajiController {
         foreach ($karyawanList as $id => &$data) {
             $totalDetik = $detikMap[$id] ?? 0;
             $data['total_detik'] = $totalDetik;
-            $data['gaji'] = round($data['gaji_pokok'] * ($totalDetik / $totalDetikBulan));
+            $data['gaji'] = $data['gaji_pokok'] * ($totalDetik / $totalDetikBulan);
         }
 
         $rekapModel = new RekapGajiModel();
