@@ -1,10 +1,12 @@
 <?php
 $isSudahAbsenDatang = $_SESSION['sudah_absen_datang'] ?? false;
 $isSudahAbsenPulang = $_SESSION['sudah_absen_pulang'] ?? false;
+
 ?>
 <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px;">
         <h4 class="mb-4 text-center fw-bold">Absensi Kehadiran</h4>
+
         
         <!-- Pesan sukses/error -->
         <?php if (!empty($_SESSION['success_absen'])): ?>

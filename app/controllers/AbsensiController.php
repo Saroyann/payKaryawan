@@ -19,22 +19,20 @@ class AbsensiController {
 
     public function index() {
         $id_karyawan = $_SESSION['id_karyawan'] ?? null;
-        $tanggal = date('Y-m-d');
+        $now = new DateTime('now', new DateTimeZone('Asia/Makassar'));
+        $tanggal = $now->format('Y-m-d');
         $absensi = $this->model->getTodayAbsensi($id_karyawan, $tanggal);
 
-        // Auto absen pulang jika sudah absen datang tapi belum absen pulang dan sudah lewat jam 17:15
+        // Auto absen pulang jika sudah absen datang tapi belum absen pulang dan sudah lewat jam 17:15 WITA
         if ($absensi && !empty($absensi['jam_datang']) && empty($absensi['jam_pulang'])) {
-            $now = new DateTime();
-            $autoPulang = new DateTime(date('Y-m-d') . ' 17:15:00');
+            $autoPulang = new DateTime($tanggal . ' 17:15:00', new DateTimeZone('Asia/Makassar'));
             if ($now > $autoPulang) {
-                // Set jam_pulang otomatis ke 17:15:00
-                $this->model->absenPulang($absensi['id'], date('Y-m-d') . ' 17:15:00');
+                $this->model->absenPulang($absensi['id'], $autoPulang->format('Y-m-d H:i:s'));
                 $_SESSION['sudah_absen_pulang'] = true;
-                $_SESSION['success_absen'] = "Absen pulang otomatis dicatat pada 17:15:00 karena Anda tidak absen pulang.";
+                $_SESSION['success_absen'] = "Absen pulang otomatis dicatat pada 17:15:00 WITA karena Anda tidak absen pulang.";
             }
         }
 
-        // Set status absen datang dan pulang di session
         $_SESSION['sudah_absen_datang'] = $absensi && !empty($absensi['jam_datang']);
         $_SESSION['sudah_absen_pulang'] = $absensi && !empty($absensi['jam_pulang']);
 
@@ -58,7 +56,6 @@ class AbsensiController {
 
     public function absenDatang() {
         try {
-            // Validasi session
             $id_karyawan = $_SESSION['id_karyawan'] ?? null;
             $nama = $_SESSION['nama'] ?? null;
             $jabatan = $_SESSION['jabatan'] ?? null;
@@ -69,16 +66,21 @@ class AbsensiController {
                 exit;
             }
 
-            // Cek apakah sudah absen hari ini
-            $tanggal = date('Y-m-d');
+            $now = new DateTime('now', new DateTimeZone('Asia/Makassar'));
+            $tanggal = $now->format('Y-m-d');
             $existingAbsen = $this->model->getTodayAbsensi($id_karyawan, $tanggal);
-            if ($existingAbsen && !empty($existingAbsen['jam_datang'])) {
-                $_SESSION['error_foto'] = "Anda sudah absen datang hari ini.";
-                header('Location: /payKaryawan/public/absensi');
-                exit;
-            }
 
-            $jam_datang = date('Y-m-d H:i:s');
+            // Jika sudah absen datang & pulang, cek apakah sudah lewat jam 07:35
+            if ($existingAbsen && !empty($existingAbsen['jam_datang']) && !empty($existingAbsen['jam_pulang'])) {
+                $bukaLagi = new DateTime($tanggal . ' 07:35:00', new DateTimeZone('Asia/Makassar'));
+                if ($now < $bukaLagi) {
+                    $_SESSION['error_foto'] = "Anda sudah absen datang & pulang hari ini. Absensi baru bisa dibuka lagi setelah jam 07:35 WITA.";
+                    header('Location: /payKaryawan/public/absensi');
+                    exit;
+                }
+            } // <-- Tambahkan kurung kurawal penutup di sini
+
+            $jam_datang = $now->format('Y-m-d H:i:s');
 
             // Debug info
             error_log("DEBUG - Processing absen datang for: " . $id_karyawan);
@@ -149,7 +151,7 @@ class AbsensiController {
             
             if ($result) {
                 $_SESSION['sudah_absen_datang'] = true;
-                $_SESSION['success_absen'] = "Absen datang berhasil dicatat pada " . date('H:i:s') . "!";
+                $_SESSION['success_absen'] = "Absen datang berhasil dicatat pada " . $now->format('H:i:s') . "!";
                 error_log("DEBUG - Absen datang berhasil disimpan");
             } else {
                 $_SESSION['error_foto'] = "Gagal menyimpan data absensi ke database.";

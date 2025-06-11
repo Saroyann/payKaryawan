@@ -21,8 +21,8 @@ class RekapGajiModel
     }
 
     // Tambahkan fungsi untuk simpan/update gaji ke rekap_gaji
-    public function saveOrUpdateGaji($id_karyawan, $gaji, $nama, $jabatan, $id_jabatan = null)
+    public function saveOrUpdateGaji($id_karyawan, $gaji, $nama, $jabatan)
     {
-        return $this->repo->saveOrUpdateGaji($id_karyawan, $gaji, $nama, $jabatan, $id_jabatan);
+        return $this->repo->saveOrUpdateGaji($id_karyawan, $gaji, $nama, $jabatan);
     }
 }
